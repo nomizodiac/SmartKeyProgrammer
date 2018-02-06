@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">SmartKeyProgrammer</string>
+
+    <string name="permission_required">Permission required</string>
+    <string name="permission_message">Please allow permissions to continue application</string>
+    <string name="go_to_settings">Go to settings</string>
+    <string name="exit">Exit</string>
+    <string name="permission_message_non_rationale">Please allow permissions to continue app</string>
+
+</resources>
