@@ -5,6 +5,7 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -47,6 +48,12 @@ public class MainActivity extends AppCompatActivity {
                 generateOutputRemoteFile();
             }
         });
+
+        String str = Integer.toHexString(1);
+
+        Log.i("TAG", "hexout = " + str);
+
+
     }
 
     private void generateOutputRemoteFile() {
@@ -74,7 +81,12 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
 
-        return RemoteHelper.getInstance(MainActivity.this).createRemote(page2, page3, page8);
+        ArrayList<String> page2List = new ArrayList<>();
+        page2List.add(page2);
+        RemoteHelper.getInstance(MainActivity.this).divide(page8, 2);
+        RemoteHelper.getInstance(MainActivity.this).divide(page3, 2);
+        return new Remote(page2List, RemoteHelper.getInstance(MainActivity.this).divide(page3, 2),
+                RemoteHelper.getInstance(MainActivity.this).divide(page8, 2));
     }
 
     private void printPage(ArrayList<String> page, TextView lbPage) {

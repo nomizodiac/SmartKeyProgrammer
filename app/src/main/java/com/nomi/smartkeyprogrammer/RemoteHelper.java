@@ -6,11 +6,33 @@ import android.widget.Toast;
 
 import com.nomi.smartkeyprogrammer.model.Remote;
 import com.nomi.smartkeyprogrammer.utils.FileUtils;
+import com.nomi.smartkeyprogrammer.utils.MathUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Formatter;
+
+import static com.nomi.smartkeyprogrammer.utils.Constants.R1_ROW21;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R1_ROW21_END;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R1_ROW21_START;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R1_ROW30;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R1_ROW30_END;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R1_ROW30_START;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R1_ROW7;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R1_ROW7_END;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R1_ROW7_START;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R2_ROW22;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R2_ROW22_END;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R2_ROW22_START;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R2_ROW30;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R2_ROW30_END;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R2_ROW30_START;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R2_ROW8;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R2_ROW8_END;
+import static com.nomi.smartkeyprogrammer.utils.Constants.R2_ROW8_START;
+import static com.nomi.smartkeyprogrammer.utils.HexUtils.convertByteArrayToHex;
+import static com.nomi.smartkeyprogrammer.utils.HexUtils.convertHexToByteArray;
 
 /**
  * Created by nomi on 2/5/2018.
@@ -19,31 +41,6 @@ import java.util.Formatter;
 public class RemoteHelper {
 
     private static RemoteHelper INSTANCE = null;
-
-    private static final int R1_ROW30 = 30;
-    private static final int R1_ROW30_START = 10;
-    private static final int R1_ROW30_END = 12;
-
-    private static final int R1_ROW21 = 21;
-    private static final int R1_ROW21_START = 16;
-    private static final int R1_ROW21_END = 22;
-
-    private static final int R1_ROW7 = 7;
-    private static final int R1_ROW7_START = 16;
-    private static final int R1_ROW7_END = 24;
-
-
-    private static final int R2_ROW30 = 30;
-    private static final int R2_ROW30_START = 26;
-    private static final int R2_ROW30_END = 28;
-
-    private static final int R2_ROW22 = 22;
-    private static final int R2_ROW22_START = 8;
-    private static final int R2_ROW22_END = 14;
-
-    private static final int R2_ROW8 = 8;
-    private static final int R2_ROW8_START = 8;
-    private static final int R2_ROW8_END = 16;
 
     Context context;
 
@@ -67,20 +64,21 @@ public class RemoteHelper {
         if(hex == null)
             return null;
 
-        ArrayList<String> rows = convertHexStringIntoRows(hex);
+        ArrayList<ArrayList<String>> rows = convertHexStringIntoRows(hex);
         if(rows == null || rows.size() != 128) {
             Toast.makeText(context, "Invalid file data", Toast.LENGTH_LONG).show();
             return null;
         }
 
-        Remote remote1= createRemote(rows.get(R1_ROW30).substring(R1_ROW30_START, R1_ROW30_END),
-                rows.get(R1_ROW21).substring(R1_ROW21_START, R1_ROW21_END),
-                rows.get(R1_ROW7).substring(R1_ROW7_START, R1_ROW7_END));
+        ArrayList<String> r1pg1 = new ArrayList<>(rows.get(R1_ROW30).subList(R1_ROW30_START, R1_ROW30_END));
+        ArrayList<String> r1pg3 = new ArrayList<>(rows.get(R1_ROW21).subList(R1_ROW21_START, R1_ROW21_END));
+        ArrayList<String> r1pg8 = new ArrayList<>(rows.get(R1_ROW7).subList(R1_ROW7_START, R1_ROW7_END));
+        ArrayList<String> r2pg1 = new ArrayList<>(rows.get(R2_ROW30).subList(R2_ROW30_START, R2_ROW30_END));
+        ArrayList<String> r2pg3 = new ArrayList<>(rows.get(R2_ROW22).subList(R2_ROW22_START, R2_ROW22_END));
+        ArrayList<String> r2pg8 = new ArrayList<>(rows.get(R2_ROW8).subList(R2_ROW8_START, R2_ROW8_END));
 
-        Remote remote2= createRemote(rows.get(R2_ROW30).substring(R2_ROW30_START, R2_ROW30_END),
-                rows.get(R2_ROW22).substring(R2_ROW22_START, R2_ROW22_END),
-                rows.get(R2_ROW8).substring(R2_ROW8_START, R2_ROW8_END));
-
+        Remote remote1 = new Remote(r1pg1, r1pg3, r1pg8);
+        Remote remote2 = new Remote(r2pg1, r2pg3, r2pg8);
         Remote remoteOutput = new Remote();
 
         for(int i = 0; i < 4; i++)
@@ -88,7 +86,7 @@ public class RemoteHelper {
             if(remote1.getPage8().get(i).equalsIgnoreCase(remote2.getPage8().get(i)))
                 remoteOutput.getPage8().add(i, remoteInput.getPage8().get(i));
             else
-                remoteOutput.getPage8().add(i, getXOR(remote1.getPage8().get(i),
+                remoteOutput.getPage8().add(i, MathUtils.getXOR(remote1.getPage8().get(i),
                         remote2.getPage8().get(i), remoteInput.getPage8().get(i)));
         }
 
@@ -97,7 +95,7 @@ public class RemoteHelper {
             if(remote1.getPage3().get(i).equalsIgnoreCase(remote2.getPage3().get(i)))
                 remoteOutput.getPage3().add(i, remoteInput.getPage3().get(i));
             else
-                remoteOutput.getPage3().add(i, getXOR(remote1.getPage3().get(i),
+                remoteOutput.getPage3().add(i, MathUtils.getXOR(remote1.getPage3().get(i),
                         remote2.getPage3().get(i), remoteInput.getPage3().get(i)));
         }
 
@@ -108,71 +106,176 @@ public class RemoteHelper {
         return remoteOutput;
     }
 
-    public void createOutputFile(ArrayList<String> inputRows, Remote remoteInput, Remote remoteOutput) {
+    public void createOutputFile(ArrayList<ArrayList<String>> inputRows, Remote remoteInput, Remote remoteOutput) {
 
-        ArrayList<String> outputRows = (ArrayList<String>)inputRows.clone();
-        outputRows.set(R1_ROW30, replace(outputRows.get(R1_ROW30), R1_ROW30_START, R1_ROW30_END, remoteInput.getPage2InString()));
-        outputRows.set(R1_ROW21, replace(outputRows.get(R1_ROW21), R1_ROW21_START, R1_ROW21_END, remoteInput.getPage3InString()));
-        outputRows.set(R1_ROW7, replace(outputRows.get(R1_ROW7), R1_ROW7_START, R1_ROW7_END, remoteInput.getPage8InString()));
-        outputRows.set(R2_ROW30, replace(outputRows.get(R2_ROW30), R2_ROW30_START, R2_ROW30_END, remoteOutput.getPage2InString()));
-        outputRows.set(R2_ROW22, replace(outputRows.get(R2_ROW22), R2_ROW22_START, R2_ROW22_END, remoteOutput.getPage3InString()));
-        outputRows.set(R2_ROW8, replace(outputRows.get(R2_ROW8), R2_ROW8_START, R2_ROW8_END, remoteOutput.getPage8InString()));
+        ArrayList<ArrayList<String>> outputRows = (ArrayList<ArrayList<String>>)inputRows.clone();
+        replace(outputRows.get(R1_ROW30), R1_ROW30_START, R1_ROW30_END, remoteInput.getPage2());
+        replace(outputRows.get(R1_ROW21), R1_ROW21_START, R1_ROW21_END, remoteInput.getPage3());
+        replace(outputRows.get(R1_ROW7), R1_ROW7_START, R1_ROW7_END, remoteInput.getPage8());
+        replace(outputRows.get(R2_ROW30), R2_ROW30_START, R2_ROW30_END, remoteOutput.getPage2());
+        replace(outputRows.get(R2_ROW22), R2_ROW22_START, R2_ROW22_END, remoteOutput.getPage3());
+        replace(outputRows.get(R2_ROW8), R2_ROW8_START, R2_ROW8_END, remoteOutput.getPage8());
+
+        // checksum calculations
+        // r1 page 8
+        ArrayList<String> r1pg8CheckSum5 = new ArrayList<>(outputRows.get(R1_ROW7).subList(R1_ROW7_START, R1_ROW7_END + 1));
+        outputRows.get(R1_ROW7).set(R1_ROW7_END + 1, MathUtils.getXOR(r1pg8CheckSum5));
+
+        String r1pg8Inv1 = MathUtils.getFullInverse(r1pg8CheckSum5.get(0));
+        String r1pg8Inv2 = MathUtils.getFullInverse(r1pg8CheckSum5.get(1));
+        String r1pg8Inv3 = MathUtils.getFullInverse(r1pg8CheckSum5.get(2));
+        String r1pg8Inv4 = MathUtils.getFullInverse(r1pg8CheckSum5.get(3));
+        String r1pg8Inv5 = MathUtils.getFullInverse(r1pg8CheckSum5.get(4));
+
+        outputRows.get(R1_ROW7).set(R1_ROW7_END + 2, r1pg8Inv1);
+        outputRows.get(R1_ROW7).set(R1_ROW7_END + 3, r1pg8Inv2);
+        outputRows.get(R2_ROW8).set(0, r1pg8Inv3);
+        outputRows.get(R2_ROW8).set(1, r1pg8Inv4);
+        outputRows.get(R2_ROW8).set(2, r1pg8Inv5);
+
+        ArrayList<String> r1pg8InvList = new ArrayList<>();
+        r1pg8InvList.add(r1pg8Inv1);
+        r1pg8InvList.add(r1pg8Inv2);
+        r1pg8InvList.add(r1pg8Inv3);
+        r1pg8InvList.add(r1pg8Inv4);
+        r1pg8InvList.add(r1pg8Inv5);
+        outputRows.get(R2_ROW8).set(R2_ROW8_START - 1, MathUtils.getXOR(r1pg8InvList));
+
+        // r2 page 8
+        ArrayList<String> r2pg8CheckSum5 = new ArrayList<>(outputRows.get(R2_ROW8).subList(R2_ROW8_START, R2_ROW8_END + 1));
+        outputRows.get(R2_ROW8).set(R2_ROW8_END + 1, MathUtils.getXOR(r2pg8CheckSum5));
+
+        String r2pg8Inv1 = MathUtils.getFullInverse(r2pg8CheckSum5.get(0));
+        String r2pg8Inv2 = MathUtils.getFullInverse(r2pg8CheckSum5.get(1));
+        String r2pg8Inv3 = MathUtils.getFullInverse(r2pg8CheckSum5.get(2));
+        String r2pg8Inv4 = MathUtils.getFullInverse(r2pg8CheckSum5.get(3));
+        String r2pg8Inv5 = MathUtils.getFullInverse(r2pg8CheckSum5.get(4));
+
+        outputRows.get(R2_ROW8).set(R2_ROW8_END + 2, r2pg8Inv1);
+        outputRows.get(R2_ROW8).set(R2_ROW8_END + 3, r2pg8Inv2);
+        outputRows.get(R2_ROW8).set(R2_ROW8_END + 4, r2pg8Inv3);
+        outputRows.get(R2_ROW8).set(R2_ROW8_END + 5, r2pg8Inv4);
+        outputRows.get(R2_ROW8).set(R2_ROW8_END + 6, r2pg8Inv5);
+
+        ArrayList<String> r2pg8InvList = new ArrayList<>();
+        r2pg8InvList.add(r2pg8Inv1);
+        r2pg8InvList.add(r2pg8Inv2);
+        r2pg8InvList.add(r2pg8Inv3);
+        r2pg8InvList.add(r2pg8Inv4);
+        r2pg8InvList.add(r2pg8Inv5);
+        outputRows.get(R2_ROW8).set(R2_ROW8_END + 7, MathUtils.getXOR(r2pg8InvList));
+
+        // checksum calculations
+        // r1 page 3
+        ArrayList<String> r1pg3CheckSum5 = new ArrayList<>(outputRows.get(R1_ROW21).subList(R1_ROW21_START, R1_ROW21_END + 2));
+        outputRows.get(R1_ROW21).set(R1_ROW21_END + 2, MathUtils.getXOR(r1pg3CheckSum5));
+
+        String r1pg3Inv1 = MathUtils.getFullInverse(r1pg3CheckSum5.get(0));
+        String r1pg3Inv2 = MathUtils.getFullInverse(r1pg3CheckSum5.get(1));
+        String r1pg3Inv3 = MathUtils.getFullInverse(r1pg3CheckSum5.get(2));
+        String r1pg3Inv4 = MathUtils.getFullInverse(r1pg3CheckSum5.get(3));
+        String r1pg3Inv5 = MathUtils.getFullInverse(r1pg3CheckSum5.get(4));
+
+        outputRows.get(R1_ROW21).set(R1_ROW21_END + 3, r1pg3Inv1);
+        outputRows.get(R1_ROW21).set(R1_ROW21_END + 4, r1pg3Inv2);
+        outputRows.get(R2_ROW22).set(0, r1pg3Inv3);
+        outputRows.get(R2_ROW22).set(1, r1pg3Inv4);
+        outputRows.get(R2_ROW22).set(2, r1pg3Inv5);
+
+        ArrayList<String> r1pg3InvList = new ArrayList<>();
+        r1pg3InvList.add(r1pg3Inv1);
+        r1pg3InvList.add(r1pg3Inv2);
+        r1pg3InvList.add(r1pg3Inv3);
+        r1pg3InvList.add(r1pg3Inv4);
+        r1pg3InvList.add(r1pg3Inv5);
+        outputRows.get(R2_ROW22).set(3, MathUtils.getXOR(r1pg3InvList));
+
+        // r2 page 3
+        ArrayList<String> r2pg3CheckSum5 = new ArrayList<>(outputRows.get(R2_ROW22).subList(R2_ROW22_START, R2_ROW22_END + 2));
+        outputRows.get(R2_ROW22).set(R2_ROW22_END + 2, MathUtils.getXOR(r2pg3CheckSum5));
+
+        String r2pg3Inv1 = MathUtils.getFullInverse(r2pg3CheckSum5.get(0));
+        String r2pg3Inv2 = MathUtils.getFullInverse(r2pg3CheckSum5.get(1));
+        String r2pg3Inv3 = MathUtils.getFullInverse(r2pg3CheckSum5.get(2));
+        String r2pg3Inv4 = MathUtils.getFullInverse(r2pg3CheckSum5.get(3));
+        String r2pg3Inv5 = MathUtils.getFullInverse(r2pg3CheckSum5.get(4));
+
+        outputRows.get(R2_ROW22).set(R2_ROW22_END + 3, r2pg3Inv1);
+        outputRows.get(R2_ROW22).set(R2_ROW22_END + 4, r2pg3Inv2);
+        outputRows.get(R2_ROW22).set(R2_ROW22_END + 5, r2pg3Inv3);
+        outputRows.get(R2_ROW22).set(R2_ROW22_END + 6, r2pg3Inv4);
+        outputRows.get(R2_ROW22).set(R2_ROW22_END + 7, r2pg3Inv5);
+
+        ArrayList<String> r2pg3InvList = new ArrayList<>();
+        r2pg3InvList.add(r2pg3Inv1);
+        r2pg3InvList.add(r2pg3Inv2);
+        r2pg3InvList.add(r2pg3Inv3);
+        r2pg3InvList.add(r2pg3Inv4);
+        r2pg3InvList.add(r2pg3Inv5);
+        outputRows.get(R2_ROW22).set(R2_ROW22_END + 8, MathUtils.getXOR(r2pg3InvList));
+
+        // checksum calculations
+        // page 2
+        ArrayList<String> pg2CheckSum5 = new ArrayList<>(outputRows.get(R1_ROW30).subList(R1_ROW30_START -1, R1_ROW30_END + 1));
+        String xorTemp = MathUtils.getXOR(pg2CheckSum5);
+        outputRows.get(R1_ROW30).set(R1_ROW30_END + 2, xorTemp);
+
+        String pg3Inv1 = MathUtils.getFullInverse(pg2CheckSum5.get(0));
+        String pg3Inv2 = MathUtils.getFullInverse(pg2CheckSum5.get(1));
+        String pg3Inv3 = MathUtils.getFullInverse(pg2CheckSum5.get(2));
+        String pg3Inv4 = MathUtils.getFullInverse(xorTemp);
+
+        outputRows.get(R1_ROW30).set(8, pg3Inv1);
+        outputRows.get(R1_ROW30).set(9, pg3Inv2);
+        outputRows.get(R1_ROW30).set(10, pg3Inv3);
+        outputRows.get(R1_ROW30).set(11, pg3Inv4);
+
+        outputRows.get(R1_ROW30).set(12, pg2CheckSum5.get(0));
+        outputRows.get(R1_ROW30).set(13, pg2CheckSum5.get(1));
+        outputRows.get(R1_ROW30).set(14, pg2CheckSum5.get(2));
+        outputRows.get(R1_ROW30).set(15, xorTemp);
+
+        outputRows.get(R1_ROW30 + 1).set(0, pg3Inv1);
+        outputRows.get(R1_ROW30 + 1).set(1, pg3Inv2);
+        outputRows.get(R1_ROW30 + 1).set(2, pg3Inv3);
+        outputRows.get(R1_ROW30 + 1).set(3, pg3Inv4);
 
         StringBuilder updatedHex = new StringBuilder();
-        for(String s : outputRows) {
-            updatedHex.append(s);
+        for(ArrayList<String> row : outputRows) {
+            for(String s : row) {
+                updatedHex.append(s);
+            }
         }
-
         writeOutputFile(updatedHex.toString());
 
     }
 
-    private String replace(String originalPage, int start, int end, String newPage) {
-        StringBuilder stringBuilder = new StringBuilder(originalPage);
-        stringBuilder.replace(start ,end, newPage);
-        return stringBuilder.toString();
+    private void replace(ArrayList<String> originalPage, int start, int end, ArrayList<String> newPage) {
+        originalPage.subList(start, end).clear();
+        originalPage.addAll(start, newPage);
     }
 
-    private String getXOR(String s1, String s2, String s3) {
-        int dec1= Integer.valueOf(s1, 16).intValue();
-        int dec2= Integer.valueOf(s2, 16).intValue();
-        int dec3= Integer.valueOf(s3, 16).intValue();
-
-        int result = dec1 ^ dec2 ^ dec3;
-        String xor = Integer.toHexString(result);
-        if(xor.length() == 1)
-            xor = "0" + xor;
-        return xor;
-    }
-
-    public Remote createRemote(String page2, String page3, String page8) {
-        ArrayList<String> page2List = new ArrayList<>();
-        page2List.add(page2.substring(0, 2));
-        ArrayList<String> page3List = new ArrayList<>();
-        page3List.add(page3.substring(0, 2));
-        page3List.add(page3.substring(2, 4));
-        page3List.add(page3.substring(4, 6));
-        ArrayList<String> page8List = new ArrayList<>();
-        page8List.add(page8.substring(0, 2));
-        page8List.add(page8.substring(2, 4));
-        page8List.add(page8.substring(4, 6));
-        page8List.add(page8.substring(6, 8));
-        Remote remote = new Remote(page2List, page3List, page8List);
-        return remote;
-    }
-
-    private ArrayList<String> convertHexStringIntoRows(String hex) {
-        ArrayList<String> rows = new ArrayList<>();
-        int divisor = 32;
-        if(hex.length() % divisor == 0) {
-            while(hex.length() > 0) {
-                String row = hex.substring(0,divisor);
-                // store the chunk.
-                rows.add(row);
-                hex = hex.substring(divisor,hex.length());
-            }
+    private ArrayList<ArrayList<String>> convertHexStringIntoRows(String hex) {
+        ArrayList<ArrayList<String>> rows = new ArrayList<>();
+        ArrayList<String> dividedRows = divide(hex, 32);
+        for(String row : dividedRows)
+        {
+            rows.add(divide(row, 2));
         }
         return rows;
+    }
+
+    public ArrayList<String> divide(String str, int divisor) {
+        ArrayList<String> list = new ArrayList<>();
+        if(str.length() % divisor == 0) {
+            while(str.length() > 0) {
+                String row = str.substring(0, divisor);
+                // store the chunk.
+                list.add(row);
+                str = str.substring(divisor, str.length());
+            }
+        }
+        return list;
     }
 
     private String readInputFile() {
@@ -201,25 +304,5 @@ public class RemoteHelper {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private String convertByteArrayToHex(byte[] bytes) {
-        Formatter formatter = new Formatter();
-        for (byte b : bytes) {
-            formatter.format("%02x", b);
-        }
-        String hex = formatter.toString();
-        Log.i("TAG", "hex = " + hex);
-        return hex;
-    }
-
-    private byte[] convertHexToByteArray(String hex) {
-        int len = hex.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
-                    + Character.digit(hex.charAt(i+1), 16));
-        }
-        return data;
     }
 }
