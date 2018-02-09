@@ -13,7 +13,6 @@
         android:layout_marginBottom="5dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
         android:orientation="vertical">
 
         <TextView
@@ -56,7 +55,6 @@
         android:layout_marginBottom="5dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="5dp"
         android:orientation="vertical">
 
         <TextView
@@ -99,7 +97,6 @@
         android:layout_marginBottom="5dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="5dp"
         android:orientation="vertical">
 
         <TextView
@@ -134,23 +131,68 @@
 
     </LinearLayout>
 
-    <Button
-        android:id="@+id/btn_run"
+    <LinearLayout
+        android:id="@+id/ll_file_names"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/ll_page8"
-        android:layout_centerInParent="true"
-        android:text="Run" />
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="10dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_input_file"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/ll_page8"
+            android:text="Input File: no file found" />
+
+        <TextView
+            android:id="@+id/tv_output_file"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/ll_page8"
+            android:layout_toRightOf="@+id/btn_load_file"
+            android:text="Output File: no file found"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_btns"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/ll_file_names"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_load_file"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/ll_page8"
+            android:text="Load file" />
+
+        <Button
+            android:id="@+id/btn_run"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/ll_page8"
+            android:layout_toRightOf="@+id/btn_load_file"
+            android:layout_marginLeft="10dp"
+            android:text="Run" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/ll_output_page2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/btn_run"
+        android:layout_below="@+id/ll_btns"
         android:layout_marginBottom="5dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
         android:orientation="vertical">
 
         <TextView
@@ -184,7 +226,6 @@
         android:layout_marginBottom="5dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
         android:orientation="vertical">
 
         <TextView
@@ -218,7 +259,7 @@
         android:layout_marginBottom="5dp"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_above="@+id/tv_copyright"
         android:orientation="vertical">
 
         <TextView
@@ -253,6 +294,6 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_margin="15dp"/>
+        android:layout_margin="5dp"/>
 
 </RelativeLayout>

@@ -39,15 +39,19 @@ public class FileUtils {
         return skpDirectoryPath;
     }
 
-    public static File getInputFile(Context context) {
-        File outputFile = new File(getSKPDirectoryPath(context) + "/" + "input.bin");
-        if(isFileExist(outputFile.getPath()))
-            return outputFile;
+    public static File getInputFile(String path) {
+        File inputFile = new File(path);
+        if(isFileExist(inputFile.getPath()))
+            return inputFile;
         return null;
     }
 
-    public static File getOutputFile(Context context) {
-        File outputFile = new File(getSKPDirectoryPath(context), "output.bin");
+    public static File getOutputFile(File inputFile) {
+        if(inputFile == null)
+            return null;
+        String fileName = inputFile.getName().split("\\.")[0];
+        fileName = fileName + "-output.bin";
+        File outputFile = new File(inputFile.getParent(),  fileName);
         if (outputFile.exists()) {
             outputFile.delete();
         }

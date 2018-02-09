@@ -55,12 +55,14 @@ public class RemoteHelper {
         return INSTANCE;
     }
 
-    public Remote getRemoteOutput(Remote remoteInput) {
+    File inputFile;
+    public Remote getRemoteOutput(Remote remoteInput, File inputFile) {
 
-        if(remoteInput == null)
+        if(remoteInput == null || inputFile == null)
             return null;
 
-        String hex = readInputFile();
+        this.inputFile = inputFile;
+        String hex = readInputFile(inputFile);
         if(hex == null)
             return null;
 
@@ -247,7 +249,6 @@ public class RemoteHelper {
             }
         }
         writeOutputFile(updatedHex.toString());
-
     }
 
     private void replace(ArrayList<String> originalPage, int start, int end, ArrayList<String> newPage) {
@@ -278,10 +279,9 @@ public class RemoteHelper {
         return list;
     }
 
-    private String readInputFile() {
+    private String readInputFile(File inputFile) {
         String hex = null;
         try {
-            File inputFile = FileUtils.getInputFile(context);
             if(inputFile == null)
                 Toast.makeText(context, "Input file not found", Toast.LENGTH_LONG).show();
             else {
@@ -298,11 +298,22 @@ public class RemoteHelper {
     private void writeOutputFile(String updatedHex) {
 
         byte[] bytes = convertHexToByteArray(updatedHex.toString());
-        File outputFile = FileUtils.getOutputFile(context);
+        File outputFile = FileUtils.getOutputFile(inputFile);
         try {
             FileUtils.writeBytesToFile(outputFile, bytes);
+            if(iOutputFileCreated != null)
+                iOutputFileCreated.onOutputFileCreated(outputFile.getPath());
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    IOutputFileCreated iOutputFileCreated;
+    public void setOnOutputFileCreated(IOutputFileCreated iOutputFileCreated) {
+        this.iOutputFileCreated = iOutputFileCreated;
+    }
+
+    public interface IOutputFileCreated {
+        void onOutputFileCreated(String path);
     }
 }

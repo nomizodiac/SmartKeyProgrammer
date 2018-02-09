@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.chaos.view.PinView;
+import com.codekidlabs.storagechooser.StorageChooser;
 import com.nomi.smartkeyprogrammer.model.Remote;
 import com.nomi.smartkeyprogrammer.utils.AppUtils;
 import com.nomi.smartkeyprogrammer.utils.FileUtils;
@@ -23,9 +24,11 @@ import static com.nomi.smartkeyprogrammer.utils.PermissionUtils.REQUEST_CODE_STO
 
 public class MainActivity extends AppCompatActivity {
 
-    Button btnRun;
+    Button btnRun, btnLoadFile;
     PinView pvPage2, pvPage3, pvPage8;
-    TextView lbPage2, lbPage3, lbPage8;
+    TextView lbPage2, lbPage3, lbPage8, lbInputFile, lbOutputFile;
+    StorageChooser chooser;
+    String filePath= "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,36 +38,74 @@ public class MainActivity extends AppCompatActivity {
         PermissionUtils.requestStoragePermission(this);
 
         btnRun = findViewById(R.id.btn_run);
+        btnLoadFile = findViewById(R.id.btn_load_file);
         pvPage2 = findViewById(R.id.pin_page2);
         pvPage3 = findViewById(R.id.pin_page3);
         pvPage8 = findViewById(R.id.pin_page8);
         lbPage2 = findViewById(R.id.tv_output_page2);
         lbPage3 = findViewById(R.id.tv_output_page3);
         lbPage8 = findViewById(R.id.tv_output_page8);
+        lbInputFile = findViewById(R.id.tv_input_file);
+        lbOutputFile = findViewById(R.id.tv_output_file);
 
         btnRun.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                lbOutputFile.setText("Output File: no file found");
                 generateOutputRemoteFile();
             }
         });
 
+        btnLoadFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Initialize Builder
+                chooser = new StorageChooser.Builder()
+                        .withActivity(MainActivity.this)
+                        .withFragmentManager(getFragmentManager())
+                        .withMemoryBar(true)
+                        .allowCustomPath(true)
+                        .setType(StorageChooser.FILE_PICKER)
+                        .build();
+                chooser.show();
+                chooser.setOnSelectListener(new StorageChooser.OnSelectListener() {
+                    @Override
+                    public void onSelect(String path) {
+                        Log.i("SELECTED_PATH", path);
+                        filePath = path;
+                        lbInputFile.setText("Input File: " + filePath);
+                    }
+                });
+            }
+        });
         String str = Integer.toHexString(1);
-
         Log.i("TAG", "hexout = " + str);
-
-
     }
 
     private void generateOutputRemoteFile() {
 
-        Remote remoteOutput = RemoteHelper.getInstance(MainActivity.this).getRemoteOutput(getRemoteInput());
+        if(filePath == null || filePath.isEmpty()) {
+            Toast.makeText(this, "Input file not found", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        RemoteHelper.getInstance(MainActivity.this).setOnOutputFileCreated(new RemoteHelper.IOutputFileCreated() {
+            @Override
+            public void onOutputFileCreated(String path) {
+                lbOutputFile.setText("Output File: " + path);
+            }
+        });
+
+        Remote remoteOutput = RemoteHelper.getInstance(MainActivity.this).getRemoteOutput(getRemoteInput(),
+                FileUtils.getInputFile(filePath));
         if(remoteOutput == null)
             return;
 
         printPage(remoteOutput.getPage2(), lbPage2);
         printPage(remoteOutput.getPage3(), lbPage3);
         printPage(remoteOutput.getPage8(), lbPage8);
+
+
     }
 
     private Remote getRemoteInput() {
