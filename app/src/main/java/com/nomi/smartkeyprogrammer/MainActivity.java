@@ -113,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
         /*String page2 = "88";
         String page3 = "0b4a4c";
         String page8 = "fdf0c630";*/
+        /*String page2 = "66";
+        String page3 = "91d71d";
+        String page8 = "a9bd8f30";*/
         String page2 = pvPage2.getText().toString();
         String page3 = pvPage3.getText().toString();
         String page8 = pvPage8.getText().toString();

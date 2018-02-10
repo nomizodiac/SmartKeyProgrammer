@@ -220,7 +220,7 @@ public class RemoteHelper {
         // page 2
         ArrayList<String> pg2CheckSum5 = new ArrayList<>(outputRows.get(R1_ROW30).subList(R1_ROW30_START -1, R1_ROW30_END + 1));
         String xorTemp = MathUtils.getXOR(pg2CheckSum5);
-        outputRows.get(R1_ROW30).set(R1_ROW30_END + 2, xorTemp);
+        outputRows.get(R1_ROW30).set(R1_ROW30_START + 2, xorTemp);
 
         String pg3Inv1 = MathUtils.getFullInverse(pg2CheckSum5.get(0));
         String pg3Inv2 = MathUtils.getFullInverse(pg2CheckSum5.get(1));

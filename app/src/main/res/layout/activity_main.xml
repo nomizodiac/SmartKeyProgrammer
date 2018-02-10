@@ -232,7 +232,7 @@
             android:id="@+id/lbl_output_page3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Page 2"
+            android:text="Page 3"
             android:textAppearance="?android:attr/textAppearanceMedium"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
